@@ -1,391 +1,166 @@
-package com.mycompany.mavenproject2;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
 import java.util.Random;
 
-// ============================================================
-// CLASSE MAIN
-// ============================================================
 
+// CLASSE PRINCIPALE
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
-
-        // ====================================================
-        // PARTE 1: PROVA DELLA GESTIONE DEI VEICOLI
-        // ====================================================
+    public static void main(String[] args) {
 
         ArchivioVeicoli archivioVeicoli = new ArchivioVeicoli();
         ArchivioUtenti archivioUtenti = new ArchivioUtenti();
 
-        // Inseriamo alcuni veicoli di esempio.
-        // Il VIN è un intero, come nella struttura iniziale.
-
-        archivioVeicoli.inserisciVeicolo(
-                new Auto(
-                        "AB123CD",
-                        5,
-                        1600,
-                        45.0,
-                        "Fiat",
-                        101,
-                        LocalDate.of(2022, 5, 10)
-                )
+        // Creazione dei veicoli
+        Auto auto = new Auto(
+                "Fiat", 1001, LocalDate.of(2022, 5, 10),
+                "AB123CD", 5, 1400, 50
         );
 
-        archivioVeicoli.inserisciVeicolo(
-                new Bici(
-                        "city",
-                        "Bianchi",
-                        102,
-                        LocalDate.of(2023, 3, 15)
-                )
+        Bici bici = new Bici(
+                "Bianchi", 1002, LocalDate.of(2023, 3, 15),
+                "city"
         );
 
-        archivioVeicoli.inserisciVeicolo(
-                new Motocicletta(
-                        "XY456ZT",
-                        35.0,
-                        "Honda",
-                        103,
-                        LocalDate.of(2021, 8, 20)
-                )
+        Motocicletta moto = new Motocicletta(
+                "Honda", 1003, LocalDate.of(2021, 7, 20)
         );
 
-        archivioVeicoli.inserisciVeicolo(
-                new FurgoneMerci(
-                        "EF789GH",
-                        12,
-                        "Iveco",
-                        104,
-                        LocalDate.of(2020, 6, 12)
-                )
+        FurgoneMerci furgoneMerci = new FurgoneMerci(
+                "Iveco", 1004, LocalDate.of(2020, 4, 12),
+                "IL789MN", 8
         );
 
-        archivioVeicoli.inserisciVeicolo(
-                new Pulmino(
-                        "JK012LM",
-                        9,
-                        "Ford",
-                        105,
-                        LocalDate.of(2022, 9, 5)
-                )
+        FurgonePersone furgonePersone = new FurgonePersone(
+                "Mercedes", 1005, LocalDate.of(2022, 9, 1),
+                "OP123QR", 9
         );
 
-        // Visualizziamo tutti i veicoli.
-        System.out.println("===== PARCO VEICOLI =====");
-        archivioVeicoli.stampaVeicoli();
-
-        // Ricerca delle auto con una determinata cilindrata
-        // e un costo giornaliero non superiore al limite.
-        System.out.println("\n===== RICERCA AUTO =====");
-
-        ArrayList<Auto> autoTrovate =
-                archivioVeicoli.ricercaAuto(1600, 50.0);
-
-        for (Auto auto : autoTrovate) {
-            System.out.println(auto);
+        // Inserimento dei veicoli nell'archivio.
+        // La traccia richiede di gestire i valori non corretti.
+        try {
+            archivioVeicoli.inserisciVeicolo(auto);
+            archivioVeicoli.inserisciVeicolo(bici);
+            archivioVeicoli.inserisciVeicolo(moto);
+            archivioVeicoli.inserisciVeicolo(furgoneMerci);
+            archivioVeicoli.inserisciVeicolo(furgonePersone);
+        } catch (VeicoloNonValidoException e) {
+            System.out.println(e.getMessage());
         }
 
-        // Creiamo un utente che noleggia un'automobile.
-        Utente utente = new Utente(
-                "Mario Rossi",
-                "mario@gmail.com"
-        );
+        // Visualizzazione dei veicoli.
+        archivioVeicoli.stampaVeicoli();
 
-        System.out.println("\n===== NOLEGGIO =====");
+        // Ricerca di auto per cilindrata e costo massimo giornaliero.
+        ArrayList<Auto> autoTrovate =
+                archivioVeicoli.cercaAuto(1400, 60);
 
-        // Mario noleggia il veicolo con VIN 101 per 3 giorni.
-        archivioVeicoli.noleggiaVeicolo(
-                101,
-                utente,
-                3,
-                archivioUtenti
-        );
+        System.out.println("Auto trovate:");
+        for (Auto a : autoTrovate) {
+            System.out.println(a);
+        }
 
-        // Paghiamo il noleggio del veicolo.
-        Veicolo autoNoleggiata =
-                archivioVeicoli.cercaVeicolo(101);
+        // Noleggio di un veicolo identificato dal VIN.
+        Utente utente = new Utente("Mario", "mario@email.it");
 
-        autoNoleggiata.pagaNoleggio();
+        try {
+            archivioVeicoli.noleggiaVeicolo(
+                    1001, utente, 3, archivioUtenti
+            );
+        } catch (VeicoloNonDisponibileException
+                 | VeicoloNonTrovatoException e) {
+            System.out.println(e.getMessage());
+        }
 
-        // Visualizziamo i noleggi registrati.
-        System.out.println("\n===== ARCHIVIO UTENTI =====");
-        archivioUtenti.stampaNoleggi();
-
-        // Visualizziamo i soli veicoli noleggiati.
-        System.out.println("\n===== VEICOLI NOLEGGIATI =====");
+        // Visualizzazione dei veicoli attualmente noleggiati.
         archivioVeicoli.stampaVeicoliNoleggiati();
 
-        // Mario restituisce l'automobile.
-        System.out.println("\n===== RESTITUZIONE =====");
-
-        archivioVeicoli.restituisciVeicolo(
-                101,
-                archivioUtenti
-        );
-
-        System.out.println("\n===== NOLEGGI DOPO LA RESTITUZIONE =====");
+        // Visualizzazione dei noleggi registrati nell'archivio utenti.
         archivioUtenti.stampaNoleggi();
 
-        // ====================================================
-        // PARTE 2: ESERCITAZIONE SULLA CONCORRENZA
-        // ====================================================
+        // Restituzione del veicolo.
+        try {
+            archivioVeicoli.restituisciVeicolo(
+                    1001, archivioUtenti
+            );
+        } catch (VeicoloNonNoleggiatoException
+                 | VeicoloNonTrovatoException e) {
+            System.out.println(e.getMessage());
+        }
 
-        /*
-         * Questo archivio è separato da quello utilizzato prima.
-         *
-         * Serve a provare il funzionamento concorrente di:
-         * - Produttore: inserisce noleggi;
-         * - Consumatore: rimuove noleggi;
-         * - Lettore: legge lo stato dell'archivio.
-         *
-         * La simulazione non modifica lo stato reale dei veicoli.
-         */
-
-        System.out.println("\n===== TEST THREAD =====");
-
-        ArchivioUtenti archivioThread = new ArchivioUtenti();
-
+        // Esempio della parte concorrente sull'archivio degli utenti.
+        // SIZE è il limite superiore dei numeri casuali usati nei VIN,
+        // non la capacità massima della lista.
         int SIZE = 10;
-        int numeroOperazioni = 12;
 
-        Produttore produttore = new Produttore(
-                archivioThread,
-                numeroOperazioni,
-                SIZE
+        Thread produttore = new Thread(
+                new Produttore(archivioUtenti, 5, SIZE)
         );
 
-        Consumatore consumatore = new Consumatore(
-                archivioThread,
-                numeroOperazioni
+        Thread consumatore = new Thread(
+                new Consumatore(archivioUtenti, 5)
         );
 
-        Lettore lettore = new Lettore(
-                archivioThread,
-                15
+        Thread lettore = new Thread(
+                new Lettore(archivioUtenti, 5)
         );
 
-        // Avviamo i tre thread.
         produttore.start();
         consumatore.start();
         lettore.start();
 
-        // Aspettiamo che tutti e tre abbiano terminato.
-        produttore.join();
-        consumatore.join();
-        lettore.join();
-
-        System.out.println("\n===== FINE PROGRAMMA =====");
-        archivioThread.stampaNoleggi();
+        try {
+            produttore.join();
+            consumatore.join();
+            lettore.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
 
 
-// ============================================================
-// INTERFACCIA NOLEGGIABILE
-// ============================================================
-
+// INTERFACCIA PER I VEICOLI NOLEGGIABILI
 interface Noleggiabile {
 
-    // Prova a noleggiare il veicolo.
-    // Restituisce false se è già noleggiato.
-    boolean noleggiaVeicolo(Utente utente, int giorniDiNoleggio);
+    boolean noleggiaVeicolo(Utente utente, int giorni);
 
-    // Restituisce il noleggio attuale oppure null.
     Noleggio statoNoleggio();
 
-    // Registra il pagamento del noleggio.
     void pagaNoleggio();
 
-    // Restituisce il veicolo e azzera il noleggio attuale.
     void restituisciVeicolo();
+
+    double getCostoGiornaliero();
 }
 
 
-// ============================================================
-// INTERFACCIA TRASPORTO PASSEGGERI
-// ============================================================
-
+// INTERFACCIA PER I VEICOLI CHE TRASPORTANO PASSEGGERI
 interface TrasportoPasseggeri {
 
-    // Restituisce la capienza di passeggeri prevista dal veicolo.
     int capienza_passeggeri();
 }
 
 
-// ============================================================
-// CLASSE UTENTE
-// ============================================================
-
-class Utente {
-
-    private String nome;
-    private String email;
-
-    public Utente(String nome, String email) {
-
-        if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome non valido.");
-        }
-
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("E-mail non valida.");
-        }
-
-        this.nome = nome;
-        this.email = email;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    @Override
-    public String toString() {
-        return "Utente{nome=" + nome
-                + ", email=" + email + "}";
-    }
-}
-
-
-// ============================================================
-// CLASSE NOLEGGIO
-// ============================================================
-
-class Noleggio {
-
-    private int numGiorni;
-    private Utente utente;
-    private double costo;
-    private int vin;
-    private boolean pagato;
-
-    public Noleggio(
-            int numGiorni,
-            Utente utente,
-            double costo,
-            int vin) {
-
-        if (numGiorni <= 0) {
-            throw new IllegalArgumentException(
-                    "Il numero di giorni deve essere positivo."
-            );
-        }
-
-        if (utente == null) {
-            throw new IllegalArgumentException(
-                    "L'utente non può essere null."
-            );
-        }
-
-        if (costo < 0) {
-            throw new IllegalArgumentException(
-                    "Il costo non può essere negativo."
-            );
-        }
-
-        if (vin <= 0) {
-            throw new IllegalArgumentException(
-                    "VIN non valido."
-            );
-        }
-
-        this.numGiorni = numGiorni;
-        this.utente = utente;
-        this.costo = costo;
-        this.vin = vin;
-
-        // Un noleggio appena creato non è ancora pagato.
-        this.pagato = false;
-    }
-
-    public int getNumGiorni() {
-        return numGiorni;
-    }
-
-    public Utente getUtente() {
-        return utente;
-    }
-
-    public double getCosto() {
-        return costo;
-    }
-
-    public int getVin() {
-        return vin;
-    }
-
-    public boolean isPagato() {
-        return pagato;
-    }
-
-    public void segnaPagato() {
-        pagato = true;
-    }
-
-    @Override
-    public String toString() {
-        return "Noleggio{VIN=" + vin
-                + ", giorni=" + numGiorni
-                + ", utente=" + utente
-                + ", costo totale=" + costo
-                + ", pagato=" + pagato
-                + "}";
-    }
-}
-
-
-// ============================================================
 // CLASSE ASTRATTA VEICOLO
-// ============================================================
-
+// Tutti i veicoli condividono gli attributi comuni e sono noleggiabili.
 abstract class Veicolo implements Noleggiabile {
 
     private String marca;
     private final int vin;
-    private LocalDate dataEmissione;
+    private LocalDate dataImmissione;
 
-    /*
-     * Il noleggio appartiene al veicolo.
-     *
-     * Se noleggioAttuale vale null, il veicolo è libero.
-     * Se contiene un oggetto Noleggio, il veicolo è noleggiato.
-     */
+    // Il noleggio attuale è null quando il veicolo è disponibile.
     private Noleggio noleggioAttuale;
 
     public Veicolo(
             String marca,
             int vin,
-            LocalDate dataEmissione) {
-
-        if (marca == null || marca.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Marca non valida."
-            );
-        }
-
-        if (vin <= 0) {
-            throw new IllegalArgumentException(
-                    "VIN non valido."
-            );
-        }
-
-        if (dataEmissione == null) {
-            throw new IllegalArgumentException(
-                    "La data non può essere null."
-            );
-        }
-
+            LocalDate dataImmissione
+    ) {
         this.marca = marca;
         this.vin = vin;
-        this.dataEmissione = dataEmissione;
+        this.dataImmissione = dataImmissione;
         this.noleggioAttuale = null;
     }
 
@@ -393,52 +168,46 @@ abstract class Veicolo implements Noleggiabile {
         return marca;
     }
 
+    public void setMarca(String marca) {
+        this.marca = marca;
+    }
+
     public int getVin() {
         return vin;
     }
 
-    public LocalDate getDataEmissione() {
-        return dataEmissione;
+    public LocalDate getDataImmissione() {
+        return dataImmissione;
     }
 
-    /*
-     * Ogni tipologia di veicolo calcola il proprio costo
-     * giornaliero secondo le regole specifiche della traccia.
-     */
-    public abstract double getCostoGiornaliero();
+    public void setDataImmissione(LocalDate dataImmissione) {
+        this.dataImmissione = dataImmissione;
+    }
+
+    // Controllo degli attributi comuni, effettuato quando il veicolo
+    // viene inserito nell'archivio.
+    public void verificaAttributi() throws VeicoloNonValidoException {
+        if (marca == null || marca.isEmpty()
+                || vin <= 0
+                || dataImmissione == null) {
+            throw new VeicoloNonValidoException(
+                    "Attributi del veicolo non validi."
+            );
+        }
+    }
 
     @Override
-    public boolean noleggiaVeicolo(
-            Utente utente,
-            int giorniDiNoleggio) {
+    public boolean noleggiaVeicolo(Utente utente, int giorni) {
 
-        if (utente == null) {
-            throw new IllegalArgumentException(
-                    "Utente non valido."
-            );
-        }
-
-        if (giorniDiNoleggio <= 0) {
-            throw new IllegalArgumentException(
-                    "I giorni devono essere maggiori di zero."
-            );
-        }
-
-        // Se esiste già un noleggio, il veicolo non è disponibile.
+        // La traccia consente il noleggio solo se il veicolo è libero.
         if (noleggioAttuale != null) {
             return false;
         }
 
-        // Il costo totale è il costo giornaliero per i giorni.
-        double costoTotale =
-                getCostoGiornaliero() * giorniDiNoleggio;
+        double costoTotale = getCostoGiornaliero() * giorni;
 
-        // Creiamo il noleggio e lo associamo al veicolo.
         noleggioAttuale = new Noleggio(
-                giorniDiNoleggio,
-                utente,
-                costoTotale,
-                vin
+                utente, String.valueOf(vin), giorni, costoTotale
         );
 
         return true;
@@ -451,79 +220,128 @@ abstract class Veicolo implements Noleggiabile {
 
     @Override
     public void pagaNoleggio() {
-
-        if (noleggioAttuale == null) {
-            throw new IllegalStateException(
-                    "Il veicolo non è noleggiato."
-            );
+        if (noleggioAttuale != null) {
+            noleggioAttuale.paga();
         }
-
-        noleggioAttuale.segnaPagato();
-
-        System.out.println(
-                "Pagamento registrato. Totale: "
-                + noleggioAttuale.getCosto() + " euro."
-        );
     }
 
     @Override
     public void restituisciVeicolo() {
-
-        if (noleggioAttuale == null) {
-            throw new IllegalStateException(
-                    "Il veicolo non è attualmente noleggiato."
-            );
-        }
-
-        // Azzerando il noleggio, il veicolo torna disponibile.
         noleggioAttuale = null;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()
-                + "{marca=" + marca
-                + ", VIN=" + vin
-                + ", dataEmissione=" + dataEmissione
-                + "}";
+        return "Marca: " + marca
+                + ", VIN: " + vin
+                + ", Data immissione: " + dataImmissione;
     }
 }
 
 
-// ============================================================
-// CLASSE BICI
-// ============================================================
+// CLASSE UTENTE
+class Utente {
 
+    private String nome;
+    private String email;
+
+    public Utente(String nome, String email) {
+        this.nome = nome;
+        this.email = email;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return "Nome: " + nome + ", E-mail: " + email;
+    }
+}
+
+
+// CLASSE NOLEGGIO
+class Noleggio {
+
+    private Utente utente;
+    private String vin;
+    private int numGiorni;
+    private double costoTotale;
+    private boolean pagato;
+
+    public Noleggio(
+            Utente utente,
+            String vin,
+            int numGiorni,
+            double costoTotale
+    ) {
+        this.utente = utente;
+        this.vin = vin;
+        this.numGiorni = numGiorni;
+        this.costoTotale = costoTotale;
+        this.pagato = false;
+    }
+
+    public Utente getUtente() {
+        return utente;
+    }
+
+    public String getVin() {
+        return vin;
+    }
+
+    public int getNumGiorni() {
+        return numGiorni;
+    }
+
+    public double getCostoTotale() {
+        return costoTotale;
+    }
+
+    public boolean isPagato() {
+        return pagato;
+    }
+
+    public void paga() {
+        pagato = true;
+    }
+
+    @Override
+    public String toString() {
+        return "Noleggio: " + utente
+                + ", VIN: " + vin
+                + ", Giorni: " + numGiorni
+                + ", Costo totale: " + costoTotale
+                + ", Pagato: " + pagato;
+    }
+}
+
+
+// CLASSE BICI
 class Bici extends Veicolo {
 
     private String modello;
 
     public Bici(
-            String modello,
             String marca,
             int vin,
-            LocalDate dataEmissione) {
-
-        super(marca, vin, dataEmissione);
-
-        if (modello == null) {
-            throw new IllegalArgumentException(
-                    "Modello della bici non valido."
-            );
-        }
-
-        // Uniformiamo maiuscole e spazi per confrontare il modello.
-        modello = modello.trim().toLowerCase();
-
-        if (!modello.equals("city")
-                && !modello.equals("mountain bike")
-                && !modello.equals("elettrica")) {
-
-            throw new IllegalArgumentException(
-                    "Modello bici non riconosciuto."
-            );
-        }
-
+            LocalDate dataImmissione,
+            String modello
+    ) {
+        super(marca, vin, dataImmissione);
         this.modello = modello;
     }
 
@@ -531,37 +349,68 @@ class Bici extends Veicolo {
         return modello;
     }
 
-    /*
-     * Il costo dipende dal modello:
-     * city = 20 euro al giorno;
-     * mountain bike ed elettrica = 30 euro al giorno.
-     */
+    public void setModello(String modello) {
+        this.modello = modello;
+    }
+
     @Override
     public double getCostoGiornaliero() {
-
         if (modello.equals("city")) {
-            return 20.0;
-        } else if (modello.equals("mountain bike")) {
-            return 30.0;
+            return 20;
         } else {
-            return 30.0;
+            // Mountain bike ed elettrica costano entrambe 30 euro.
+            return 30;
+        }
+    }
+
+    @Override
+    public void verificaAttributi() throws VeicoloNonValidoException {
+        super.verificaAttributi();
+
+        if (!"city".equals(modello)
+                && !"mountain bike".equals(modello)
+                && !"elettrica".equals(modello)) {
+            throw new VeicoloNonValidoException(
+                    "Modello di bicicletta non valido."
+            );
         }
     }
 
     @Override
     public String toString() {
-        return super.toString()
-                + ", modello=" + modello
-                + ", costo giornaliero="
-                + getCostoGiornaliero() + " euro";
+        return "Bici: " + super.toString()
+                + ", Modello: " + modello
+                + ", Costo giornaliero: " + getCostoGiornaliero();
     }
 }
 
 
-// ============================================================
-// CLASSE AUTO
-// ============================================================
+// CLASSE MOTOCICLETTA
+// La traccia non specifica attributi o tariffe aggiuntivi per la moto.
+class Motocicletta extends Veicolo {
 
+    public Motocicletta(
+            String marca,
+            int vin,
+            LocalDate dataImmissione
+    ) {
+        super(marca, vin, dataImmissione);
+    }
+
+    @Override
+    public double getCostoGiornaliero() {
+        // La traccia non assegna una tariffa alla motocicletta.
+        return 0.0;
+    }
+
+    @Override
+    public String toString() {
+        return "Motocicletta: " + super.toString();
+    }
+}
+
+
+// CLASSE AUTO
 class Auto extends Veicolo implements TrasportoPasseggeri {
 
     private String targa;
@@ -570,29 +419,15 @@ class Auto extends Veicolo implements TrasportoPasseggeri {
     private double costoGiornaliero;
 
     public Auto(
+            String marca,
+            int vin,
+            LocalDate dataImmissione,
             String targa,
             int numPosti,
             double cilindrata,
-            double costoGiornaliero,
-            String marca,
-            int vin,
-            LocalDate dataEmissione) {
-
-        super(marca, vin, dataEmissione);
-
-        if (targa == null || targa.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Targa non valida."
-            );
-        }
-
-        if (numPosti <= 0 || cilindrata <= 0
-                || costoGiornaliero <= 0) {
-            throw new IllegalArgumentException(
-                    "Gli attributi dell'auto non sono validi."
-            );
-        }
-
+            double costoGiornaliero
+    ) {
+        super(marca, vin, dataImmissione);
         this.targa = targa;
         this.numPosti = numPosti;
         this.cilindrata = cilindrata;
@@ -603,17 +438,33 @@ class Auto extends Veicolo implements TrasportoPasseggeri {
         return targa;
     }
 
+    public void setTarga(String targa) {
+        this.targa = targa;
+    }
+
     public int getNumPosti() {
         return numPosti;
+    }
+
+    public void setNumPosti(int numPosti) {
+        this.numPosti = numPosti;
     }
 
     public double getCilindrata() {
         return cilindrata;
     }
 
+    public void setCilindrata(double cilindrata) {
+        this.cilindrata = cilindrata;
+    }
+
     @Override
     public double getCostoGiornaliero() {
         return costoGiornaliero;
+    }
+
+    public void setCostoGiornaliero(double costoGiornaliero) {
+        this.costoGiornaliero = costoGiornaliero;
     }
 
     @Override
@@ -622,248 +473,216 @@ class Auto extends Veicolo implements TrasportoPasseggeri {
     }
 
     @Override
-    public String toString() {
-        return super.toString()
-                + ", targa=" + targa
-                + ", numPosti=" + numPosti
-                + ", cilindrata=" + cilindrata
-                + ", costo giornaliero=" + costoGiornaliero
-                + " euro";
-    }
-}
+    public void verificaAttributi() throws VeicoloNonValidoException {
+        super.verificaAttributi();
 
-
-// ============================================================
-// CLASSE MOTOCICLETTA
-// ============================================================
-
-class Motocicletta extends Veicolo {
-
-    private String targa;
-    private double costoGiornaliero;
-
-    public Motocicletta(
-            String targa,
-            double costoGiornaliero,
-            String marca,
-            int vin,
-            LocalDate dataEmissione) {
-
-        super(marca, vin, dataEmissione);
-
-        if (targa == null || targa.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Targa non valida."
+        if (numPosti <= 0
+                || cilindrata <= 0
+                || costoGiornaliero <= 0) {
+            throw new VeicoloNonValidoException(
+                    "Attributi dell'auto non validi."
             );
         }
-
-        if (costoGiornaliero <= 0) {
-            throw new IllegalArgumentException(
-                    "Costo giornaliero non valido."
-            );
-        }
-
-        this.targa = targa;
-        this.costoGiornaliero = costoGiornaliero;
-    }
-
-    public String getTarga() {
-        return targa;
-    }
-
-    @Override
-    public double getCostoGiornaliero() {
-        return costoGiornaliero;
     }
 
     @Override
     public String toString() {
-        return super.toString()
-                + ", targa=" + targa
-                + ", costo giornaliero=" + costoGiornaliero
-                + " euro";
+        return "Auto: " + super.toString()
+                + ", Targa: " + targa
+                + ", Posti: " + numPosti
+                + ", Cilindrata: " + cilindrata
+                + ", Costo giornaliero: " + costoGiornaliero;
     }
 }
 
 
-// ============================================================
-// CLASSE ASTRATTA FURGONE
-// ============================================================
-
-abstract class Furgone extends Veicolo {
+// CLASSE FURGONE PER IL TRASPORTO MERCI
+class FurgoneMerci extends Veicolo {
 
     private String targa;
-
-    public Furgone(
-            String targa,
-            String marca,
-            int vin,
-            LocalDate dataEmissione) {
-
-        super(marca, vin, dataEmissione);
-
-        if (targa == null || targa.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Targa non valida."
-            );
-        }
-
-        this.targa = targa;
-    }
-
-    public String getTarga() {
-        return targa;
-    }
-}
-
-
-// ============================================================
-// CLASSE FURGONE PER TRASPORTO MERCI
-// ============================================================
-
-class FurgoneMerci extends Furgone {
-
-    private int cubatura;
+    private double cubatura;
 
     public FurgoneMerci(
-            String targa,
-            int cubatura,
             String marca,
             int vin,
-            LocalDate dataEmissione) {
-
-        super(targa, marca, vin, dataEmissione);
-
-        if (cubatura <= 0) {
-            throw new IllegalArgumentException(
-                    "La cubatura deve essere positiva."
-            );
-        }
-
+            LocalDate dataImmissione,
+            String targa,
+            double cubatura
+    ) {
+        super(marca, vin, dataImmissione);
+        this.targa = targa;
         this.cubatura = cubatura;
     }
 
-    public int getCubatura() {
+    public String getTarga() {
+        return targa;
+    }
+
+    public void setTarga(String targa) {
+        this.targa = targa;
+    }
+
+    public double getCubatura() {
         return cubatura;
     }
 
-    /*
-     * La traccia stabilisce:
-     * costo giornaliero = cubatura * 7 euro.
-     */
+    public void setCubatura(double cubatura) {
+        this.cubatura = cubatura;
+    }
+
     @Override
     public double getCostoGiornaliero() {
-        return cubatura * 7.0;
+        return cubatura * 7;
+    }
+
+    @Override
+    public void verificaAttributi() throws VeicoloNonValidoException {
+        super.verificaAttributi();
+
+        if (cubatura <= 0) {
+            throw new VeicoloNonValidoException(
+                    "Cubatura del furgone non valida."
+            );
+        }
     }
 
     @Override
     public String toString() {
-        return super.toString()
-                + ", cubatura=" + cubatura
-                + ", costo giornaliero="
-                + getCostoGiornaliero() + " euro";
+        return "Furgone merci: " + super.toString()
+                + ", Targa: " + targa
+                + ", Cubatura: " + cubatura
+                + ", Costo giornaliero: " + getCostoGiornaliero();
     }
 }
 
 
-// ============================================================
-// CLASSE PULMINO PER TRASPORTO PERSONE
-// ============================================================
+// CLASSE FURGONE PER IL TRASPORTO PERSONE
+class FurgonePersone extends Veicolo
+        implements TrasportoPasseggeri {
 
-class Pulmino extends Furgone implements TrasportoPasseggeri {
-
+    private String targa;
     private int numPosti;
 
-    public Pulmino(
-            String targa,
-            int numPosti,
+    public FurgonePersone(
             String marca,
             int vin,
-            LocalDate dataEmissione) {
-
-        super(targa, marca, vin, dataEmissione);
-
-        if (numPosti <= 0) {
-            throw new IllegalArgumentException(
-                    "Il numero di posti deve essere positivo."
-            );
-        }
-
+            LocalDate dataImmissione,
+            String targa,
+            int numPosti
+    ) {
+        super(marca, vin, dataImmissione);
+        this.targa = targa;
         this.numPosti = numPosti;
+    }
+
+    public String getTarga() {
+        return targa;
+    }
+
+    public void setTarga(String targa) {
+        this.targa = targa;
     }
 
     public int getNumPosti() {
         return numPosti;
     }
 
+    public void setNumPosti(int numPosti) {
+        this.numPosti = numPosti;
+    }
+
     @Override
     public int capienza_passeggeri() {
         return numPosti;
     }
 
-    /*
-     * La traccia stabilisce:
-     * costo giornaliero = numero posti * 10 euro.
-     */
     @Override
     public double getCostoGiornaliero() {
-        return numPosti * 10.0;
+        return numPosti * 10;
+    }
+
+    @Override
+    public void verificaAttributi() throws VeicoloNonValidoException {
+        super.verificaAttributi();
+
+        if (numPosti <= 0) {
+            throw new VeicoloNonValidoException(
+                    "Numero di posti del furgone non valido."
+            );
+        }
     }
 
     @Override
     public String toString() {
-        return super.toString()
-                + ", numPosti=" + numPosti
-                + ", costo giornaliero="
-                + getCostoGiornaliero() + " euro";
+        return "Furgone persone: " + super.toString()
+                + ", Targa: " + targa
+                + ", Posti: " + numPosti
+                + ", Costo giornaliero: " + getCostoGiornaliero();
     }
 }
 
 
-// ============================================================
-// CLASSE ARCHIVIO VEICOLI
-// ============================================================
+// ECCEZIONE PER ATTRIBUTI NON VALIDI O VIN DUPLICATO
+class VeicoloNonValidoException extends Exception {
 
+    public VeicoloNonValidoException(String messaggio) {
+        super(messaggio);
+    }
+}
+
+
+// ECCEZIONE PER VEICOLO NON DISPONIBILE
+class VeicoloNonDisponibileException extends Exception {
+
+    public VeicoloNonDisponibileException(String messaggio) {
+        super(messaggio);
+    }
+}
+
+
+// ECCEZIONE PER VEICOLO NON TROVATO
+class VeicoloNonTrovatoException extends Exception {
+
+    public VeicoloNonTrovatoException(String messaggio) {
+        super(messaggio);
+    }
+}
+
+
+// ECCEZIONE PER RESTITUZIONE DI UN VEICOLO NON NOLEGGIATO
+class VeicoloNonNoleggiatoException extends Exception {
+
+    public VeicoloNonNoleggiatoException(String messaggio) {
+        super(messaggio);
+    }
+}
+
+
+// ARCHIVIO DEI VEICOLI
 class ArchivioVeicoli {
 
-    /*
-     * L'archivio contiene tutti i veicoli dell'agenzia,
-     * non soltanto quelli attualmente noleggiati.
-     */
-    private ArrayList<Veicolo> veicoli;
+    // La traccia modificata richiede ArrayList al posto della Map.
+    private ArrayList<Veicolo> veicoli = new ArrayList<>();
 
-    public ArchivioVeicoli() {
-        veicoli = new ArrayList<>();
-    }
+    public void inserisciVeicolo(Veicolo veicolo)
+            throws VeicoloNonValidoException {
 
-    // Inserisce un veicolo, evitando VIN duplicati.
-    public void inserisciVeicolo(Veicolo veicolo) {
-
-        if (veicolo == null) {
-            throw new IllegalArgumentException(
-                    "Il veicolo non può essere null."
-            );
-        }
-
+        // Non si possono inserire due veicoli con lo stesso VIN.
         if (cercaVeicolo(veicolo.getVin()) != null) {
-            throw new IllegalArgumentException(
+            throw new VeicoloNonValidoException(
                     "Esiste già un veicolo con questo VIN."
             );
         }
 
+        // Controlla gli attributi previsti dalle tipologie concrete.
+        veicolo.verificaAttributi();
+
         veicoli.add(veicolo);
     }
 
-    /*
-     * Ricerca sequenziale:
-     * si scorre la lista e si confronta il VIN.
-     *
-     * Restituisce null se non trova il veicolo.
-     */
+    // Ricerca lineare tramite VIN, come richiesto dalla traccia.
     public Veicolo cercaVeicolo(int vin) {
-
         for (Veicolo veicolo : veicoli) {
-
             if (veicolo.getVin() == vin) {
                 return veicolo;
             }
@@ -872,37 +691,28 @@ class ArchivioVeicoli {
         return null;
     }
 
-    // Stampa tutti i veicoli.
+    // Visualizza tutti i veicoli.
+    // Il toString della classe concreta stampa i dati specifici.
     public void stampaVeicoli() {
-
         for (Veicolo veicolo : veicoli) {
             System.out.println(veicolo);
         }
     }
 
-    /*
-     * Cerca le auto che hanno la cilindrata richiesta
-     * e un costo giornaliero non superiore al massimo.
-     *
-     * instanceof permette di selezionare soltanto le Auto
-     * dall'elenco di oggetti Veicolo.
-     */
-    public ArrayList<Auto> ricercaAuto(
+    // Cerca le auto con la cilindrata richiesta e costo non superiore
+    // al costo massimo indicato.
+    public ArrayList<Auto> cercaAuto(
             double cilindrata,
-            double costoMassimoGiornaliero) {
-
+            double costoMassimo
+    ) {
         ArrayList<Auto> risultato = new ArrayList<>();
 
         for (Veicolo veicolo : veicoli) {
-
             if (veicolo instanceof Auto) {
-
                 Auto auto = (Auto) veicolo;
 
                 if (auto.getCilindrata() == cilindrata
-                        && auto.getCostoGiornaliero()
-                        <= costoMassimoGiornaliero) {
-
+                        && auto.getCostoGiornaliero() <= costoMassimo) {
                     risultato.add(auto);
                 }
             }
@@ -911,189 +721,100 @@ class ArchivioVeicoli {
         return risultato;
     }
 
-    /*
-     * Noleggia il veicolo e registra il noleggio
-     * nell'archivio degli utenti.
-     */
-    public double noleggiaVeicolo(
+    public void noleggiaVeicolo(
             int vin,
             Utente utente,
             int giorni,
-            ArchivioUtenti archivioUtenti) {
+            ArchivioUtenti archivioUtenti
+    ) throws VeicoloNonDisponibileException,
+             VeicoloNonTrovatoException {
 
         Veicolo veicolo = cercaVeicolo(vin);
 
         if (veicolo == null) {
-            throw new NoSuchElementException(
-                    "Veicolo non trovato."
+            throw new VeicoloNonTrovatoException(
+                    "Veicolo non presente nell'archivio."
             );
         }
 
-        if (utente == null || archivioUtenti == null) {
-            throw new IllegalArgumentException(
-                    "Utente o archivio non valido."
-            );
-        }
+        // Tutte le sottoclassi di Veicolo implementano Noleggiabile
+        // tramite la classe astratta Veicolo.
+        boolean effettuato = veicolo.noleggiaVeicolo(utente, giorni);
 
-        // Nella variante a liste, impediamo che lo stesso utente
-        // abbia più noleggi contemporaneamente.
-        if (archivioUtenti.contieneEmail(utente.getEmail())) {
-            throw new IllegalStateException(
-                    "L'utente ha già un noleggio attivo."
-            );
-        }
-
-        // Se è già noleggiato, il metodo restituisce false.
-        boolean riuscito =
-                veicolo.noleggiaVeicolo(utente, giorni);
-
-        if (!riuscito) {
-            throw new IllegalStateException(
+        if (!effettuato) {
+            throw new VeicoloNonDisponibileException(
                     "Il veicolo è già noleggiato."
+            );
+        }
+
+        // Si registra nell'archivio utenti lo stesso oggetto Noleggio
+        // creato dal veicolo.
+        Noleggio noleggio = veicolo.statoNoleggio();
+        archivioUtenti.registraNoleggio(noleggio);
+
+        System.out.println(
+                "Costo totale del noleggio: "
+                        + noleggio.getCostoTotale() + " euro"
+        );
+    }
+
+    public void restituisciVeicolo(
+            int vin,
+            ArchivioUtenti archivioUtenti
+    ) throws VeicoloNonNoleggiatoException,
+             VeicoloNonTrovatoException {
+
+        Veicolo veicolo = cercaVeicolo(vin);
+
+        if (veicolo == null) {
+            throw new VeicoloNonTrovatoException(
+                    "Veicolo non presente nell'archivio."
             );
         }
 
         Noleggio noleggio = veicolo.statoNoleggio();
 
-        /*
-         * Se la registrazione fallisce, ripristiniamo lo stato
-         * del veicolo per non lasciarlo occupato senza registrazione.
-         */
-        try {
-            archivioUtenti.registraNoleggio(noleggio);
-        } catch (RuntimeException e) {
-            veicolo.restituisciVeicolo();
-            throw e;
-        }
-
-        System.out.println(
-                "Noleggio registrato. Costo totale: "
-                + noleggio.getCosto() + " euro."
-        );
-
-        return noleggio.getCosto();
-    }
-
-    /*
-     * Restituisce un veicolo:
-     * 1. verifica che esista;
-     * 2. verifica che sia noleggiato;
-     * 3. rimuove il noleggio dall'archivio utenti;
-     * 4. azzera il noleggio nel veicolo.
-     */
-    public void restituisciVeicolo(
-            int vin,
-            ArchivioUtenti archivioUtenti) {
-
-        Veicolo veicolo = cercaVeicolo(vin);
-
-        if (veicolo == null) {
-            throw new NoSuchElementException(
-                    "Veicolo non trovato."
-            );
-        }
-
-        if (veicolo.statoNoleggio() == null) {
-            throw new IllegalStateException(
-                    "Il veicolo non è noleggiato."
-            );
-        }
-
-        Noleggio noleggio =
-                archivioUtenti.rimuoviNoleggioPerVin(vin);
-
+        // La traccia richiede di gestire il caso in cui il veicolo
+        // non sia attualmente noleggiato.
         if (noleggio == null) {
-            throw new IllegalStateException(
-                    "Noleggio non presente nell'archivio utenti."
+            throw new VeicoloNonNoleggiatoException(
+                    "Il veicolo non è attualmente noleggiato."
             );
         }
 
         veicolo.restituisciVeicolo();
 
-        System.out.println(
-                "Veicolo con VIN " + vin
-                + " restituito correttamente."
-        );
+        // Il noleggio viene rimosso dall'archivio degli utenti tramite VIN.
+        archivioUtenti.rimuoviPerVIN(String.valueOf(vin));
     }
 
-    // Visualizza soltanto i veicoli attualmente noleggiati.
+    // Visualizza esclusivamente i veicoli noleggiati.
     public void stampaVeicoliNoleggiati() {
-
         for (Veicolo veicolo : veicoli) {
-
             if (veicolo.statoNoleggio() != null) {
                 System.out.println(veicolo);
+                System.out.println(veicolo.statoNoleggio());
             }
         }
-    }
-
-    // Restituisce una copia della lista.
-    public ArrayList<Veicolo> getVeicoli() {
-        return new ArrayList<>(veicoli);
     }
 }
 
 
-// ============================================================
-// CLASSE ARCHIVIO UTENTI
-// ============================================================
-
+// ARCHIVIO DEGLI UTENTI
 class ArchivioUtenti {
 
-    /*
-     * Questa variante utilizza una lista di Noleggio.
-     * Ogni elemento contiene l'utente, il VIN e i dati
-     * del noleggio.
-     */
-    private ArrayList<Noleggio> noleggi;
+    // La lista contiene direttamente i noleggi in corso.
+    private ArrayList<Noleggio> noleggi = new ArrayList<>();
 
-    private Random random;
-
-    public ArchivioUtenti() {
-        noleggi = new ArrayList<>();
-        random = new Random();
-    }
-
-    /*
-     * I metodi che accedono alla lista sono synchronized.
-     *
-     * In questo modo un thread per volta può eseguire
-     * un'operazione sincronizzata su questo stesso archivio.
-     */
-
+    // Registra un noleggio.
     public synchronized void registraNoleggio(Noleggio noleggio) {
-
-        if (noleggio == null) {
-            throw new IllegalArgumentException(
-                    "Il noleggio non può essere null."
-            );
-        }
-
-        if (contieneEmailInterno(
-                noleggio.getUtente().getEmail())) {
-
-            throw new IllegalStateException(
-                    "L'utente ha già un noleggio attivo."
-            );
-        }
-
-        if (contieneVINInterno(noleggio.getVin())) {
-
-            throw new IllegalStateException(
-                    "Il veicolo è già presente tra i noleggi."
-            );
-        }
-
         noleggi.add(noleggio);
-
-        // Risveglia eventuali thread in attesa.
         notifyAll();
     }
 
+    // Cerca il primo noleggio associato all'e-mail.
     public synchronized Noleggio cercaPerEmail(String email) {
-
         for (Noleggio noleggio : noleggi) {
-
             if (noleggio.getUtente().getEmail().equals(email)) {
                 return noleggio;
             }
@@ -1102,11 +823,10 @@ class ArchivioUtenti {
         return null;
     }
 
-    public synchronized Noleggio cercaPerVin(int vin) {
-
+    // Cerca un noleggio tramite VIN.
+    public synchronized Noleggio cercaPerVIN(String vin) {
         for (Noleggio noleggio : noleggi) {
-
-            if (noleggio.getVin() == vin) {
+            if (noleggio.getVin().equals(vin)) {
                 return noleggio;
             }
         }
@@ -1114,266 +834,146 @@ class ArchivioUtenti {
         return null;
     }
 
-    public synchronized boolean contieneEmail(String email) {
-        return contieneEmailInterno(email);
-    }
-
-    public synchronized boolean contieneVIN(int vin) {
-        return contieneVINInterno(vin);
-    }
-
-    /*
-     * Questi due metodi sono usati internamente dai metodi
-     * synchronized. Non devono acquisire un'altra struttura:
-     * accedono direttamente alla lista già protetta.
-     */
-    private boolean contieneEmailInterno(String email) {
-
-        for (Noleggio noleggio : noleggi) {
-
-            if (noleggio.getUtente().getEmail().equals(email)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean contieneVINInterno(int vin) {
-
-        for (Noleggio noleggio : noleggi) {
-
-            if (noleggio.getVin() == vin) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /*
-     * Rimuove il noleggio corrispondente al VIN.
-     * Restituisce null se non è presente.
-     */
-    public synchronized Noleggio rimuoviNoleggioPerVin(int vin) {
-
+    // Rimuove il noleggio relativo al veicolo restituito.
+    public synchronized void rimuoviPerVIN(String vin) {
         for (int i = 0; i < noleggi.size(); i++) {
-
-            if (noleggi.get(i).getVin() == vin) {
-
-                Noleggio rimosso = noleggi.remove(i);
-
-                // Il VIN è nuovamente disponibile.
+            if (noleggi.get(i).getVin().equals(vin)) {
+                noleggi.remove(i);
                 notifyAll();
+                return;
+            }
+        }
+    }
 
-                return rimosso;
+    // Verifica se un VIN è già presente.
+    public synchronized boolean contieneVIN(String vin) {
+        for (Noleggio noleggio : noleggi) {
+            if (noleggio.getVin().equals(vin)) {
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
-    /*
-     * Metodo utilizzato dal Consumatore.
-     *
-     * Se la lista è vuota, il Consumatore aspetta.
-     * Quando il Produttore inserisce un noleggio, notifyAll()
-     * permette al Consumatore di riprendere l'esecuzione.
-     */
-    public synchronized Noleggio rimuoviPrimoNoleggio()
+    // Inserimento atomico per il produttore:
+    // controllo del VIN e inserimento avvengono sotto lo stesso lock.
+    public synchronized boolean inserisciSeVINLibero(Noleggio noleggio) {
+        if (contieneVIN(noleggio.getVin())) {
+            return false;
+        }
+
+        noleggi.add(noleggio);
+        notifyAll();
+        return true;
+    }
+
+    // Estrazione usata dal consumatore.
+    // Se la lista è vuota, il thread attende un inserimento.
+    public synchronized Noleggio estraiPrimo()
             throws InterruptedException {
 
         while (noleggi.isEmpty()) {
             wait();
         }
 
-        Noleggio rimosso = noleggi.remove(0);
+        Noleggio noleggio = noleggi.remove(0);
 
-        // Comunica agli altri thread che la lista è cambiata.
         notifyAll();
 
-        return rimosso;
+        return noleggio;
     }
 
-    /*
-     * Il Produttore sceglie un VIN casuale da 1 a SIZE.
-     *
-     * Se il VIN è già presente, ne estrae un altro.
-     * Se tutti i VIN disponibili sono in uso, aspetta che
-     * il Consumatore liberi un posto.
-     */
-    public synchronized int scegliVINCasualeLibero(int size)
-            throws InterruptedException {
-
-        if (size <= 0) {
-            throw new IllegalArgumentException(
-                    "SIZE deve essere positivo."
-            );
-        }
-
-        while (true) {
-
-            /*
-             * Poiché ogni noleggio attivo deve avere un VIN
-             * distinto nell'intervallo 1..SIZE, se tutti
-             * i VIN sono in uso bisogna attendere.
-             */
-            while (noleggi.size() >= size) {
-                wait();
-            }
-
-            int vin = random.nextInt(size) + 1;
-
-            // Verifichiamo se il VIN estratto è già presente.
-            if (!contieneVINInterno(vin)) {
-                return vin;
-            }
-
-            // Se è presente, il ciclo estrae un nuovo valore.
-        }
-    }
-
-    /*
-     * Restituiamo una copia della lista.
-     *
-     * Così il Lettore può scorrere uno snapshot senza modificare
-     * direttamente la lista condivisa.
-     */
-    public synchronized ArrayList<Noleggio> getNoleggi() {
-        return new ArrayList<>(noleggi);
-    }
-
-    public void stampaNoleggi() {
-
-        ArrayList<Noleggio> copia = getNoleggi();
-
-        if (copia.isEmpty()) {
-            System.out.println("Nessun noleggio attivo.");
-            return;
-        }
-
-        for (Noleggio noleggio : copia) {
+    // Lettura sincronizzata di tutti i noleggi correnti.
+    public synchronized void stampaNoleggi() {
+        for (Noleggio noleggio : noleggi) {
             System.out.println(noleggio);
         }
     }
 }
 
 
-// ============================================================
 // THREAD PRODUTTORE
-// ============================================================
-
-class Produttore extends Thread {
+class Produttore implements Runnable {
 
     private ArchivioUtenti archivio;
-    private int numeroNoleggi;
-    private int size;
+    private int numeroInserimenti;
+    private int SIZE;
+    private Random random = new Random();
 
     public Produttore(
             ArchivioUtenti archivio,
-            int numeroNoleggi,
-            int size) {
-
+            int numeroInserimenti,
+            int SIZE
+    ) {
         this.archivio = archivio;
-        this.numeroNoleggi = numeroNoleggi;
-        this.size = size;
+        this.numeroInserimenti = numeroInserimenti;
+        this.SIZE = SIZE;
     }
 
     @Override
     public void run() {
 
-        for (int i = 1; i <= numeroNoleggi; i++) {
+        for (int i = 1; i <= numeroInserimenti; i++) {
 
-            try {
+            // E-mail costruita con il progressivo richiesto dalla traccia.
+            String email = "user" + i + "@gmail.com";
+            Utente utente = new Utente("User " + i, email);
 
-                // Generiamo un VIN libero tra 1 e SIZE.
-                int vin =
-                        archivio.scegliVINCasualeLibero(size);
+            boolean inserito = false;
 
-                // L'e-mail viene creata con un contatore progressivo.
-                String email = "user" + i + "@gmail.com";
+            while (!inserito) {
 
-                Utente utente = new Utente(
-                        "Utente " + i,
-                        email
-                );
+                // VIN composto da "vin" e numero casuale tra 1 e SIZE.
+                String vin = "vin" + (random.nextInt(SIZE) + 1);
 
-                /*
-                 * Qui stiamo simulando esclusivamente l'accesso
-                 * concorrente all'ArchivioUtenti.
-                 *
-                 * Il costo è 0 perché questo noleggio di prova
-                 * non è collegato a un veicolo dell'altro archivio.
-                 */
+                // Il noleggio simulato serve a esercitare la concorrenza.
+                // La traccia non specifica qui una tariffa.
                 Noleggio noleggio = new Noleggio(
-                        1,
-                        utente,
-                        0.0,
-                        vin
+                        utente, vin, 1, 0.0
                 );
 
-                archivio.registraNoleggio(noleggio);
+                // Se il VIN esiste già, si genera un altro numero.
+                inserito = archivio.inserisciSeVINLibero(noleggio);
 
-                System.out.println(
-                        "PRODUTTORE: inserito "
-                        + email + " con VIN " + vin
-                );
-
-                Thread.sleep(100);
-
-            } catch (InterruptedException e) {
-
-                // Rispetta l'interruzione del thread.
-                Thread.currentThread().interrupt();
-                return;
+                if (inserito) {
+                    System.out.println(
+                            "Produttore: inserito " + noleggio
+                    );
+                }
             }
         }
     }
 }
 
 
-// ============================================================
 // THREAD CONSUMATORE
-// ============================================================
-
-class Consumatore extends Thread {
+class Consumatore implements Runnable {
 
     private ArchivioUtenti archivio;
-    private int numeroRestituzioni;
+    private int numeroEstrazioni;
 
     public Consumatore(
             ArchivioUtenti archivio,
-            int numeroRestituzioni) {
-
+            int numeroEstrazioni
+    ) {
         this.archivio = archivio;
-        this.numeroRestituzioni = numeroRestituzioni;
+        this.numeroEstrazioni = numeroEstrazioni;
     }
 
     @Override
     public void run() {
 
-        for (int i = 0; i < numeroRestituzioni; i++) {
-
+        for (int i = 0; i < numeroEstrazioni; i++) {
             try {
-
-                /*
-                 * Se non ci sono noleggi, questo metodo aspetta
-                 * fino a quando il Produttore ne inserisce uno.
-                 */
-                Noleggio noleggio =
-                        archivio.rimuoviPrimoNoleggio();
+                // Estrae e rimuove un noleggio dalla lista condivisa.
+                Noleggio noleggio = archivio.estraiPrimo();
 
                 System.out.println(
-                        "CONSUMATORE: restituito VIN "
-                        + noleggio.getVin()
-                        + " dell'utente "
-                        + noleggio.getUtente().getEmail()
+                        "Consumatore: restituito " + noleggio
                 );
 
-                Thread.sleep(150);
-
             } catch (InterruptedException e) {
-
                 Thread.currentThread().interrupt();
                 return;
             }
@@ -1382,19 +982,13 @@ class Consumatore extends Thread {
 }
 
 
-// ============================================================
 // THREAD LETTORE
-// ============================================================
-
-class Lettore extends Thread {
+class Lettore implements Runnable {
 
     private ArchivioUtenti archivio;
     private int numeroLetture;
 
-    public Lettore(
-            ArchivioUtenti archivio,
-            int numeroLetture) {
-
+    public Lettore(ArchivioUtenti archivio, int numeroLetture) {
         this.archivio = archivio;
         this.numeroLetture = numeroLetture;
     }
@@ -1404,27 +998,11 @@ class Lettore extends Thread {
 
         for (int i = 0; i < numeroLetture; i++) {
 
-            /*
-             * getNoleggi() restituisce una copia sincronizzata
-             * della lista, che può essere letta senza modificare
-             * direttamente l'archivio condiviso.
-             */
-            ArrayList<Noleggio> copia = archivio.getNoleggi();
-
-            System.out.println(
-                    "\nLETTORE: lettura numero " + (i + 1)
-            );
-
-            if (copia.isEmpty()) {
-                System.out.println("Nessun noleggio attivo.");
-            } else {
-                for (Noleggio noleggio : copia) {
-                    System.out.println(noleggio);
-                }
-            }
+            System.out.println("Noleggi attualmente presenti:");
+            archivio.stampaNoleggi();
 
             try {
-                Thread.sleep(120);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
